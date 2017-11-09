@@ -84,13 +84,33 @@ layer2 = [ones(m,1) layer2];
 output = sigmoid(layer2 * Theta2');
 
 J = 1/m * sum(sum(-y_matrix.*log(output) - (1 - y_matrix).*log(1 - output)));
-regularized = lambda / (2*m) * (sum((Theta1 .^ 2)(:)) + sum((Theta2 .^ 2)(:)));
+regularized = lambda / (2*m) * (sum((Theta1(:,2:end) .^ 2)(:)) + sum((Theta2(:,2:end) .^ 2)(:)));
 
 J = J + regularized;
 
 
 
+for t = 1 : m
+	%Step 1: Forward Propagation
+	a1 = A(t,:)(:);
+	a2 = sigmoid(Theta1 * a1);
+	a2 = [1;a2];
+	a3 = sigmoid(Theta2 * a2);
+	
+	%Step 2: calculate delta3
+	delta3 = a3 - y_matrix(t,:)(:);
+	
+	%Step 3: calculate delta2
+	delta2 = (Theta2' * delta3) .* sigmoidGradient([1;(Theta1 * a1)]);
+	
+	%Step 4: Accumulate gradients
+	Theta1_grad = Theta1_grad .+ delta2(2:end) * a1';
+	Theta2_grad = Theta2_grad .+ delta3 * a2';
+end;
 
+%Step 5: Return gradients
+Theta1_grad = 1/m * Theta1_grad;
+Theta2_grad = 1/m * Theta2_grad;
 
 
 
